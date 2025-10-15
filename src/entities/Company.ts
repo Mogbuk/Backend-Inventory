@@ -1,25 +1,23 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { Warehouse} from "./Warehouse";
+import { Warehouse } from "./Warehouse";
 
 @Entity()
-export class company {
-    @PrimaryGeneratedColumn()
-    id: number;
+export class Company {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name: string;
+  @Column()
+  name: string;
 
-    @Column()
-    nit: string;
+  @Column()
+  nit: string;
 
-    @Column()
-    address: string;
+  @Column()
+  address: string;
 
-    @Column()
-    phone?: string;
+  @Column({ nullable: true })
+  phone?: string;
 
-    @OneToMany(() => Warehouse, (warehouse) => warehouse.company)
-    warehouses: Warehouses[];
-
-
+  @OneToMany(() => Warehouse, (warehouse) => warehouse.company)
+  warehouses: Warehouse[];
 }
