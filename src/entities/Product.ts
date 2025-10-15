@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { Stock } from "./Stock";
 import { Movement } from "./Movement";
+import { Stock } from "./Stock";
 
 @Entity()
 export class Product {
@@ -17,11 +17,19 @@ export class Product {
   price: number;
 
   @Column({ nullable: true })
-  description?: string;
+  description: string;
 
-  @OneToMany(() => Stock, (stock) => stock.product)
-  stock: Stock[];
+  // ✅ Nuevo campo: Marca
+  @Column({ nullable: true })
+  brand: string;
+
+  // ✅ Nuevo campo: Estado (por defecto “active”)
+  @Column({ default: "active" })
+  status: string;
 
   @OneToMany(() => Movement, (movement) => movement.product)
   movements: Movement[];
+
+  @OneToMany(() => Stock, (stock) => stock.product)
+  stocks: Stock[];
 }

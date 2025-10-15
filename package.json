@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-   "scripts": {
+  "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "dependencies": {
@@ -17,6 +17,7 @@
     "typeorm": "^0.3.27"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.7.2",
     "ts-node-dev": "^2.0.0",
