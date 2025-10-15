@@ -19,11 +19,9 @@ export class Product {
   @Column({ nullable: true })
   description: string;
 
-  // ✅ Nuevo campo: Marca
   @Column({ nullable: true })
   brand: string;
 
-  // ✅ Nuevo campo: Estado (por defecto “active”)
   @Column({ default: "active" })
   status: string;
 
