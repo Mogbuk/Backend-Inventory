@@ -7,8 +7,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//Rutas
 app.use("/api/products", productRoutes);
 app.use("/api/stock", stockRoutes);
-
 
 export default app;
