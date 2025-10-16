@@ -13,6 +13,9 @@ export class Movement {
   @Column()
   quantity: number;
 
+    @Column({ nullable: true })
+  note: string;
+
   @CreateDateColumn()
   date: Date;
 
