@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn,  UpdateDateColumn, Check, Index } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn,  UpdateDateColumn, Check, Index, ManyToOne } from "typeorm";
 import { Company } from "./Company";
 import { Movement } from "./Movement";
 import { Stock } from "./Stock";
@@ -37,7 +37,7 @@ export class Product {
   @OneToMany(() => Stock, (stock) => stock.product)
   stocks: Stock[];
 
-    @CreateDateColumn()
+  @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()

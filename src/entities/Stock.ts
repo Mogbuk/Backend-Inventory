@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Check } from "typeorm";
 import { Warehouse } from "./Warehouse";
 import { Product } from "./Product";
 
 @Entity()
+@Check(`"quantity" >= 0`)
 export class Stock {
   @PrimaryGeneratedColumn()
   id: number;
@@ -10,9 +11,9 @@ export class Stock {
   @Column()
   quantity: number;
 
-  @ManyToOne(() => Warehouse, (warehouse) => warehouse.stock, { onDelete: "CASCADE" })
+  @ManyToOne(() => Warehouse, (warehouse) => warehouse.stocks, { onDelete: "CASCADE" })
   warehouse: Warehouse;
 
-  @ManyToOne(() => Product, (product) => product.stock, { onDelete: "CASCADE" })
+  @ManyToOne(() => Product, (product) => product.stocks, { onDelete: "CASCADE" })
   product: Product;
 }

@@ -17,5 +17,5 @@ export class Warehouse {
   company: Company;
 
   @OneToMany(() => Stock, (stock) => stock.warehouse)
-  stock: Stock[];
+  stocks: Stock[];
 }
