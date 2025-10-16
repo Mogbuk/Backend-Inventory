@@ -1,11 +1,13 @@
 import { Request, Response, Router } from "express";
 import { AppDataSource } from "../config/datasource";
 import { Company } from "../entities/Company";
+import { Warehouse } from "../entities/Warehouse";
+
 
 const router = Router();
 const companyRepo = AppDataSource.getRepository(Company);
 
-// 🔹 POST /api/companies - Crear empresa
+//POST /api/companies - Crear empresa
 router.post("/", async (req: Request, res: Response) => {
   try {
     const company = companyRepo.create(req.body);
@@ -16,7 +18,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 GET /api/companies - Obtener todas las empresas
+//GET /api/companies - Obtener todas las empresas
 router.get("/", async (_req: Request, res: Response) => {
   try {
     const companies = await companyRepo.find({ relations: ["warehouses"] });
@@ -26,7 +28,7 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// 🔹 GET /api/companies/:id - Obtener empresa por ID
+//GET /api/companies/:id - Obtener empresa por ID
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const company = await companyRepo.findOne({
@@ -54,7 +56,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 DELETE /api/companies/:id - Eliminar empresa
+//DELETE /api/companies/:id - Eliminar empresa
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const company = await companyRepo.findOneBy({ id: Number(req.params.id) });
@@ -62,6 +64,19 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     await companyRepo.remove(company);
     res.json({ message: "Company deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/companies/:id/warehouses
+router.get("/:id/warehouses", async (req: Request, res: Response) => {
+  try {
+    const warehouses = await AppDataSource.getRepository(Warehouse).find({
+      where: { company: { id: Number(req.params.id) } },
+      relations: ["company"],
+    });
+    res.json(warehouses);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

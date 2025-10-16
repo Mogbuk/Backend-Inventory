@@ -7,7 +7,7 @@ const router = Router();
 const warehouseRepo = AppDataSource.getRepository(Warehouse);
 const companyRepo = AppDataSource.getRepository(Company);
 
-// 🔹 POST /api/warehouses - Crear almacén (requiere companyId)
+//POST /api/warehouses - Crear almacén (requiere companyId)
 router.post("/", async (req: Request, res: Response) => {
   try {
     const { name, location, companyId } = req.body;
@@ -23,7 +23,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 GET /api/warehouses - Listar todos los almacenes
+//GET /api/warehouses - Listar todos los almacenes
 router.get("/", async (_req: Request, res: Response) => {
   try {
     const warehouses = await warehouseRepo.find({ relations: ["company"] });
@@ -33,25 +33,13 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// 🔹 GET /api/companies/:companyId/warehouses - Listar almacenes de una empresa
-router.get("/company/:companyId", async (req: Request, res: Response) => {
-  try {
-    const warehouses = await warehouseRepo.find({
-      where: { company: { id: Number(req.params.companyId) } },
-      relations: ["company"],
-    });
-    res.json(warehouses);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// 🔹 GET /api/warehouses/:id - Obtener almacén por ID
+//GET /api/warehouses/:id - Obtener almacén por ID
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const warehouse = await warehouseRepo.findOne({
       where: { id: Number(req.params.id) },
-      relations: ["company", "stock"],
+      relations: ["company", "stocks"],
     });
     if (!warehouse) return res.status(404).json({ error: "Warehouse not found" });
     res.json(warehouse);
@@ -60,7 +48,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 PUT /api/warehouses/:id - Actualizar almacén
+//PUT /api/warehouses/:id - Actualizar almacén
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const warehouse = await warehouseRepo.findOne({
@@ -77,7 +65,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 DELETE /api/warehouses/:id - Eliminar almacén
+//DELETE /api/warehouses/:id - Eliminar almacén
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const warehouse = await warehouseRepo.findOneBy({ id: Number(req.params.id) });
