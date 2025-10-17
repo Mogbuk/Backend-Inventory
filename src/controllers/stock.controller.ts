@@ -4,8 +4,8 @@ import { StockService } from "../services/stock.service";
 const router = Router();
 const stockService = new StockService();
 
-// 🔹 GET /api/stock/:warehouseId
-router.get("/:warehouseId", async (req: Request, res: Response) => {
+//GET /warehouses/:warehouseId/stock?productId
+router.get("/warehouses/:warehouseId/stock", async (req: Request, res: Response) => {
   try {
     const warehouseId = Number(req.params.warehouseId);
     const productId = req.query.productId ? Number(req.query.productId) : undefined;
@@ -16,10 +16,11 @@ router.get("/:warehouseId", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 POST /api/stock/in
-router.post("/in", async (req: Request, res: Response) => {
+//POST /warehouses/:warehouseId/stock/in
+router.post("/warehouses/:warehouseId/stock/in", async (req: Request, res: Response) => {
   try {
-    const { warehouseId, productId, quantity, note } = req.body;
+    const warehouseId = Number(req.params.warehouseId);
+    const { productId, quantity, note } = req.body;
     const result = await stockService.stockIn(warehouseId, productId, quantity, note);
     res.status(201).json(result);
   } catch (error: any) {
@@ -27,10 +28,11 @@ router.post("/in", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 POST /api/stock/out
-router.post("/out", async (req: Request, res: Response) => {
+//POST /warehouses/:warehouseId/stock/out
+router.post("/warehouses/:warehouseId/stock/out", async (req: Request, res: Response) => {
   try {
-    const { warehouseId, productId, quantity, note } = req.body;
+    const warehouseId = Number(req.params.warehouseId);
+    const { productId, quantity, note } = req.body;
     const result = await stockService.stockOut(warehouseId, productId, quantity, note);
     res.status(201).json(result);
   } catch (error: any) {
@@ -38,8 +40,8 @@ router.post("/out", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 POST /api/stock/transfer
-router.post("/transfer", async (req: Request, res: Response) => {
+//POST /stock/transfer
+router.post("/stock/transfer", async (req: Request, res: Response) => {
   try {
     const { fromWarehouseId, toWarehouseId, productId, quantity, note } = req.body;
     const result = await stockService.transfer(fromWarehouseId, toWarehouseId, productId, quantity, note);
