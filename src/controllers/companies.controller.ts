@@ -42,7 +42,20 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// 🔹 PUT /api/companies/:id - Actualizar empresa
+//GET /api/companies/:id/warehouses
+router.get("/:id/warehouses", async (req: Request, res: Response) => {
+  try {
+    const warehouses = await AppDataSource.getRepository(Warehouse).find({
+      where: { company: { id: Number(req.params.id) } },
+      relations: ["company"],
+    });
+    res.json(warehouses);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+//PUT /api/companies/:id - Actualizar empresa
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const company = await companyRepo.findOneBy({ id: Number(req.params.id) });
@@ -64,19 +77,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     await companyRepo.remove(company);
     res.json({ message: "Company deleted successfully" });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /api/companies/:id/warehouses
-router.get("/:id/warehouses", async (req: Request, res: Response) => {
-  try {
-    const warehouses = await AppDataSource.getRepository(Warehouse).find({
-      where: { company: { id: Number(req.params.id) } },
-      relations: ["company"],
-    });
-    res.json(warehouses);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

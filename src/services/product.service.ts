@@ -9,26 +9,27 @@ export class ProductService {
     this.productRepo = AppDataSource.getRepository(Product);
   }
 
-  // Obtener todos los productos
-  async getAll(filters?: { q?: string; brand?: string; status?: string }) {
-    const query = this.productRepo.createQueryBuilder("product");
+// Obtener todos los productos (siempre devuelve array)
+async getAll(filters?: { q?: string; brand?: string; status?: string }) {
+  const query = this.productRepo.createQueryBuilder("product");
 
-    if (filters?.q) {
-      query.andWhere("LOWER(product.name) LIKE LOWER(:q)", {
-        q: `%${filters.q}%`,
-      });
-    }
-
-    if (filters?.brand) {
-      query.andWhere("product.brand = :brand", { brand: filters.brand });
-    }
-
-    if (filters?.status) {
-      query.andWhere("product.status = :status", { status: filters.status });
-    }
-
-    return query.getMany();
+  if (filters?.q) { 
+    query.andWhere("LOWER(product.name) LIKE LOWER(:q)", {
+      q: `%${filters.q}%`,
+    });
   }
+
+  if (filters?.brand) {
+    query.andWhere("product.brand = :brand", { brand: filters.brand });
+  }
+
+  if (filters?.status) {
+    query.andWhere("product.status = :status", { status: filters.status });
+  }
+
+  const result = await query.getMany();
+  return Array.isArray(result) ? result : [];
+}
 
   // Obtener un producto por ID
   async getById(id: number) {

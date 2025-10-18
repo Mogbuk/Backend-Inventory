@@ -36,7 +36,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/companies/:companyId/products?page&limit&q&brand&status
+//GET /api/companies/:companyId/products?page&limit&q&brand&status
 router.get("/companies/:companyId/products", async (req: Request, res: Response) => {
   try {
     const companyId = Number(req.params.companyId);
@@ -67,7 +67,7 @@ router.get("/companies/:companyId/products", async (req: Request, res: Response)
 });
 
 
-// POST /api/companies/:companyId/products
+//POST /api/companies/:companyId/products
 router.post("/companies/:companyId/products", async (req: Request, res: Response) => {
   try {
     const { name, sku, price, brand, status, description } = req.body;
@@ -102,10 +102,10 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/products/:id (soft delete)
+//DELETE /api/products/:id (soft delete)
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
-     const product = await productRepo.findOneBy({ id: Number(req.params.id) });
+    const product = await productRepo.findOneBy({ id: Number(req.params.id) });
     if (!product) return res.status(404).json({ error: "Product not found" });
     if (product.status === "INACTIVE")
       return res.status(400).json({ error: "Product already inactive" });

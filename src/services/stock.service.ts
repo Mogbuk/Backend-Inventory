@@ -18,7 +18,7 @@ export class StockService {
     this.movementRepo = AppDataSource.getRepository(Movement);
   }
 
-  // 🔹 Consultar stock en un almacén
+  //Consultar stock en un almacén
   async getStock(warehouseId: number, productId?: number) {
     const warehouse = await this.warehouseRepo.findOne({
       where: { id: warehouseId },
@@ -37,7 +37,7 @@ export class StockService {
     return stocks;
   }
 
-  // 🔹 Entrada de stock
+  //Entrada de stock
   async stockIn(warehouseId: number, productId: number, quantity: number, note?: string) {
     if (quantity <= 0) throw new Error("Quantity must be greater than zero");
 
@@ -71,7 +71,7 @@ export class StockService {
       stock.quantity += quantity;
       await manager.save(stock);
 
-      // Registrar movimiento
+      //Registrar movimiento
       const movement = manager.create(Movement, {
         type: "IN",
         quantity,
@@ -84,7 +84,7 @@ export class StockService {
     });
   }
 
-  // 🔹 Salida de stock
+  //Salida de stock
   async stockOut(warehouseId: number, productId: number, quantity: number, note?: string) {
     if (quantity <= 0) throw new Error("Quantity must be greater than zero");
 
@@ -117,7 +117,7 @@ export class StockService {
     });
   }
 
-  // 🔹 Transferencia de stock entre almacenes
+  //Transferencia de stock entre almacenes
   async transfer(fromWarehouseId: number, toWarehouseId: number, productId: number, quantity: number, note?: string) {
     if (quantity <= 0) throw new Error("Quantity must be greater than zero");
     if (fromWarehouseId === toWarehouseId) throw new Error("Cannot transfer to the same warehouse");
@@ -166,7 +166,7 @@ export class StockService {
       stockTo.quantity += quantity;
       await manager.save(stockTo);
 
-      // Registrar movimientos
+      //Registrar movimientos
       const outMovement = manager.create(Movement, {
         type: "OUT",
         quantity,

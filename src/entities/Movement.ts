@@ -13,7 +13,7 @@ export class Movement {
   @Column()
   quantity: number;
 
-    @Column({ nullable: true })
+  @Column({ nullable: true })
   note: string;
 
   @CreateDateColumn()
