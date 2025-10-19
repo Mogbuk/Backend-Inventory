@@ -40,14 +40,20 @@ cd Backend-PruebaTecnica
 
 2. yarn install
 
+---
+
 ## Crear archivo .env en la raiz
 
 3. DATABASE_URL=postgresql://usuario:password@host:puerto/base_de_datos
 PORT=####
 
+---
+
 ## Ejecutar servidor en modo desarrollo
 
 4. yarn dev
+
+---
 
 ## Entidades
 
@@ -56,6 +62,8 @@ Warehouse: id, name, companyId, createdAt, updatedAt
 Product: id, name, brand, sku, price, status, createdAt, updatedAt
 Stock: warehouseId, productId, quantity
 Movement: id, warehouseId, productId, type (IN/OUT/TRANSFER), quantity, note, createdAt
+
+---
 
 ## Endpoints principales
 
@@ -84,6 +92,7 @@ POST /warehouses/:warehouseId/stock/in → Entrada de stock
 POST /warehouses/:warehouseId/stock/out → Salida de stock
 POST /stock/transfer → Transferencia entre almacenes
 
+---
 
 ## Validaciones
 
@@ -109,6 +118,8 @@ Códigos HTTP:
 422 / 400: validaciones
 404: recurso no encontrado
 409: conflicto (unicidad, stock insuficiente)
+
+---
 
 ## Notas importantes
 
