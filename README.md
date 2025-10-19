@@ -31,10 +31,10 @@ Inditecol SAS opera varias empresas que comparten una plataforma de gestión de 
 
 1. Clonar el repositorio:
 
-```bash
 git clone https://github.com/Mogbuk/Backend-Inventory
 cd Backend-PruebaTecnica
 
+---
 
 ## Instalar dependencias
 
