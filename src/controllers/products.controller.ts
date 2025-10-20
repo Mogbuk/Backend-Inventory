@@ -125,20 +125,20 @@ router.get("/companies/:companyId/products", async (req: Request, res: Response)
 
 
 
-// POST /api/companies/:companyId/products
+//POST /api/companies/:companyId/products
 router.post("/companies/:companyId/products", async (req: Request, res: Response) => {
   try {
     const companyId = Number(req.params.companyId);
     const { name, sku, price, brand, status, description } = req.body;
 
-    // 🔹 Validar formato de companyId
+    //Validar formato de companyId
     if (isNaN(companyId)) {
       return res.status(400).json({
         error: { message: "Invalid company ID format" },
       });
     }
 
-    // 🔹 Validar campos requeridos
+    //Validar campos requeridos
     const errors: Record<string, string> = {};
     if (!name?.trim()) errors.name = "Name is required";
     if (!brand?.trim()) errors.brand = "Brand is required";
@@ -150,7 +150,7 @@ router.post("/companies/:companyId/products", async (req: Request, res: Response
       });
     }
 
-    // 🔹 Verificar que la compañía exista
+    //Verificar que la compañía exista
     const company = await AppDataSource.getRepository(Company).findOneBy({ id: companyId });
     if (!company) {
       return res.status(404).json({
@@ -158,7 +158,7 @@ router.post("/companies/:companyId/products", async (req: Request, res: Response
       });
     }
 
-    // 🔹 Validar unicidad (nombre + marca dentro de la empresa)
+    //Validar unicidad (nombre + marca dentro de la empresa)
     const existing = await productRepo.findOne({
       where: { name, brand, company: { id: companyId } },
     });
@@ -169,7 +169,7 @@ router.post("/companies/:companyId/products", async (req: Request, res: Response
       });
     }
 
-    // 🔹 Crear y guardar producto
+    //Crear y guardar producto
     const product = productRepo.create({
       name,
       sku,
@@ -192,31 +192,97 @@ router.post("/companies/:companyId/products", async (req: Request, res: Response
 
 
 
-//PUT /products/:id
+//PUT /products/:id - Actualizar producto
 router.put("/:id", async (req: Request, res: Response) => {
   try {
-    const updated = await productService.update(Number(req.params.id), req.body);
+    const id = Number(req.params.id);
+    const { name, price, brand, status, description } = req.body;
+
+    //Validar formato de ID
+    if (isNaN(id)) {
+      return res.status(400).json({
+        error: { message: "Invalid product ID format" },
+      });
+    }
+
+    //Validar campos requeridos
+    const errors: Record<string, string> = {};
+    if (!name?.trim()) errors.name = "Name is required";
+    if (!brand?.trim()) errors.brand = "Brand is required";
+    if (price == null || isNaN(price)) errors.price = "Valid price is required";
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(422).json({
+        error: { message: "Validation failed", fields: errors },
+      });
+    }
+
+    //Intentar actualizar el producto
+    const updated = await productService.update(id, {
+      name,
+      price: Number(price),
+      brand,
+      status,
+      description,
+    });
+
+    if (!updated) {
+      return res.status(404).json({
+        error: { message: "Product not found" },
+      });
+    }
+
     res.json(updated);
+
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({
+      error: { message: "Internal server error", details: error.message },
+    });
   }
 });
 
-//DELETE /api/products/:id (soft delete)
+
+//DELETE /api/products/:id - Soft delete (cambia status a INACTIVE)
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
-    const product = await productRepo.findOneBy({ id: Number(req.params.id) });
-    if (!product) return res.status(404).json({ error: "Product not found" });
-    if (product.status === "INACTIVE")
-      return res.status(400).json({ error: "Product already inactive" });
+    const id = Number(req.params.id);
 
+    //Validar formato del ID
+    if (isNaN(id)) {
+      return res.status(400).json({
+        error: { message: "Invalid product ID format" },
+      });
+    }
+
+    //Buscar producto existente
+    const product = await productRepo.findOneBy({ id });
+    if (!product) {
+      return res.status(404).json({
+        error: { message: "Product not found" },
+      });
+    }
+
+    //Validar si ya está inactivo
+    if (product.status === "INACTIVE") {
+      return res.status(422).json({
+        error: { message: "Product is already inactive" },
+      });
+    }
+
+    //Soft delete (actualizar status)
     product.status = "INACTIVE";
     await productRepo.save(product);
 
-    res.json({ message: "Product soft-deleted successfully" });
+    res.json({
+      message: "Product soft-deleted successfully",
+      productId: product.id,
+    });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: { message: "Internal server error", details: error.message },
+    });
   }
 });
+
 
 export default router;

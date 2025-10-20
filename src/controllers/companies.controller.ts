@@ -10,7 +10,7 @@ const companyRepo = AppDataSource.getRepository(Company);
 // POST /api/companies - Crear empresa
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const { name } = req.body;
+    const { name, isActive } = req.body;
     if (!name?.trim()) {
       return res.status(422).json({
         error: {
@@ -18,6 +18,10 @@ router.post("/", async (req: Request, res: Response) => {
           fields: { name: "Name is required" },
         },
       });
+    }
+
+    if (isActive) {
+      await companyRepo.update({ isActive: true }, { isActive: false });
     }
 
     const company = companyRepo.create(req.body);
@@ -135,6 +139,15 @@ router.put("/:id", async (req: Request, res: Response) => {
         },
       });
     }
+
+    if (req.body.isActive === true) {
+      const activeCompany = await companyRepo.findOne({ where: { isActive: true } });
+      if (activeCompany && activeCompany.id !== company.id) {
+        activeCompany.isActive = false;
+        await companyRepo.save(activeCompany);
+      }
+    }
+
 
     Object.assign(company, req.body);
     const updated = await companyRepo.save(company);

@@ -19,8 +19,8 @@ export class Company {
   @Column({ nullable: true })
   phone?: string;
 
-  @Column({ nullable: true })
-  status: false;
+  @Column({type: "boolean", default: false})
+  isActive: boolean;
 
   @OneToMany(() => Warehouse, (warehouse) => warehouse.company)
   warehouses: Warehouse[];
