@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Check } from "typeor
 import { Warehouse } from "./Warehouse";
 import { Product } from "./Product";
 
+
 @Entity()
 @Check(`"quantity" >= 0`)
 export class Stock {

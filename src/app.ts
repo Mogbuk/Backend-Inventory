@@ -1,9 +1,6 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import swaggerUi from "swagger-ui-express";
-import fs from "fs";
-import path from "path";
 
 import productRoutes from "./controllers/products.controller";
 import stockRoutes from "./controllers/stock.controller";

@@ -25,17 +25,14 @@ export class Product {
   @Column({ nullable: true })
   brand: string;
 
-  @Column({ default: "active" })
-  status: string;
+  @Column({type: "boolean", default: false})
+  status: boolean;
 
   @ManyToOne(() => Company, (company) => company.products, { onDelete: "CASCADE" })
   company: Company;
 
   @OneToMany(() => Movement, (movement) => movement.product)
   movements: Movement[];
-
-  @OneToMany(() => Stock, (stock) => stock.product)
-  stocks: Stock[];
 
   @CreateDateColumn()
   createdAt: Date;

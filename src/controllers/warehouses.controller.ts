@@ -140,7 +140,6 @@ router.put("/:id", async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
-    //Validar formato de ID
     if (isNaN(id)) {
       return res.status(400).json({
         error: { message: "Invalid warehouse ID format" },
@@ -160,7 +159,6 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const { name, location } = req.body;
 
-    //Validar campos requeridos
     if (!name?.trim()) {
       return res.status(422).json({
         error: { message: "Validation error", fields: { name: "Name is required" } },
@@ -183,7 +181,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
-    // Validar formato de ID
     if (isNaN(id)) {
       return res.status(400).json({
         error: { message: "Invalid warehouse ID format" },

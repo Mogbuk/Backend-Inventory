@@ -4,14 +4,13 @@ import { AppDataSource } from "../config/datasource";
 import { Company } from "../entities/Company";
 import { Warehouse } from "../entities/Warehouse";
 import { Product } from "../entities/Product";
+const companyRepo = AppDataSource.getRepository(Company);
 
 const router = Router();
 const productService = new ProductService();
-const companyRepo = AppDataSource.getRepository(Company);
-const warehouseRepo = AppDataSource.getRepository(Warehouse);
 const productRepo = AppDataSource.getRepository(Product);
 
-// GET /products
+//GET /products
 router.get("/", async (req: Request, res: Response) => {
   try {
     const filters = {
@@ -20,7 +19,7 @@ router.get("/", async (req: Request, res: Response) => {
       status: req.query.status as string,
     };
 
-    // Validar status si viene en query
+    //Validar status si viene en query
     if (filters.status && !["active", "inactive"].includes(filters.status.toLowerCase())) {
       return res.status(422).json({
         error: {
@@ -47,12 +46,11 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 
-// GET /products/:id
+//GET /products/:id
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
-    // Validar formato de ID
     if (isNaN(id)) {
       return res.status(400).json({
         error: { message: "Invalid product ID format" },
@@ -76,15 +74,21 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 
-// GET /api/companies/:companyId/products?page&limit&q&brand&status
-router.get("/companies/:companyId/products", async (req: Request, res: Response) => {
+// GET /api/products/companies/:companyId?page=1&limit=10&search=term&status=true
+router.get("/companies/:companyId", async (req: Request, res: Response) => {
   try {
     const companyId = Number(req.params.companyId);
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
-    const { q, brand, status } = req.query;
+    const search = (req.query.search as string)?.trim();
+    const brand = (req.query.brand as string)?.trim();
+    const statusQuery = (req.query.status as string)?.trim();
 
-    // Validaciones básicas
+    // Convertir status a booleano si viene definido
+    let status: boolean | undefined;
+    if (statusQuery === "true") status = true;
+    else if (statusQuery === "false") status = false;
+
     if (isNaN(companyId)) {
       return res.status(400).json({
         error: { message: "Invalid company ID format" },
@@ -97,14 +101,26 @@ router.get("/companies/:companyId/products", async (req: Request, res: Response)
       });
     }
 
+    // Construir query base
     const query = productRepo.createQueryBuilder("product")
       .leftJoinAndSelect("product.company", "company")
       .where("company.id = :companyId", { companyId });
 
-    if (q) query.andWhere("LOWER(product.name) LIKE LOWER(:q)", { q: `%${q}%` });
-    if (brand) query.andWhere("LOWER(product.brand) LIKE LOWER(:brand)", { brand: `%${brand}%` });
-    if (status) query.andWhere("product.status = :status", { status });
+    // Filtrar por status si viene
+    if (status !== undefined) query.andWhere("product.status = :status", { status });
 
+    // Filtrar por nombre o marca si viene search
+    if (search) {
+      query.andWhere(
+        "(LOWER(product.name) LIKE LOWER(:search) OR LOWER(product.brand) LIKE LOWER(:search))",
+        { search: `%${search}%` }
+      );
+    }
+
+    // Filtrar por brand exacto si viene
+    if (brand) query.andWhere("LOWER(product.brand) = LOWER(:brand)", { brand });
+
+    // Paginación
     const [data, total] = await query
       .skip((page - 1) * limit)
       .take(limit)
@@ -123,23 +139,20 @@ router.get("/companies/:companyId/products", async (req: Request, res: Response)
   }
 });
 
-
-
-//POST /api/companies/:companyId/products
-router.post("/companies/:companyId/products", async (req: Request, res: Response) => {
+//POST /api/products/companies/:companyId
+router.post("/companies/:companyId", async (req: Request, res: Response) => {
   try {
     const companyId = Number(req.params.companyId);
-    const { name, sku, price, brand, status, description } = req.body;
+    let { name, sku, price, brand, status, description } = req.body;
 
-    //Validar formato de companyId
     if (isNaN(companyId)) {
       return res.status(400).json({
         error: { message: "Invalid company ID format" },
       });
     }
 
-    //Validar campos requeridos
     const errors: Record<string, string> = {};
+    if (!sku?.trim()) errors.sku = "SKU is required";
     if (!name?.trim()) errors.name = "Name is required";
     if (!brand?.trim()) errors.brand = "Brand is required";
     if (price == null || isNaN(price)) errors.price = "Valid price is required";
@@ -150,15 +163,14 @@ router.post("/companies/:companyId/products", async (req: Request, res: Response
       });
     }
 
-    //Verificar que la compañía exista
-    const company = await AppDataSource.getRepository(Company).findOneBy({ id: companyId });
+    const company = await companyRepo.findOneBy({ id: companyId });
     if (!company) {
       return res.status(404).json({
         error: { message: "Company not found" },
       });
     }
 
-    //Validar unicidad (nombre + marca dentro de la empresa)
+    // Validar unicidad (nombre + marca dentro de la empresa)
     const existing = await productRepo.findOne({
       where: { name, brand, company: { id: companyId } },
     });
@@ -169,13 +181,22 @@ router.post("/companies/:companyId/products", async (req: Request, res: Response
       });
     }
 
-    //Crear y guardar producto
+    // Convertir status a booleano si viene definido
+    if (status !== undefined) {
+      if (status === "true" || status === true) status = true;
+      else if (status === "false" || status === false) status = false;
+      else status = true; // default si viene valor inválido
+    } else {
+      status = true; // default si no viene
+    }
+
+    // Crear y guardar producto
     const product = productRepo.create({
       name,
       sku,
       price: Number(price),
       brand,
-      status: status || "ACTIVE",
+      status, // ahora booleano
       description,
       company,
     });
@@ -192,11 +213,19 @@ router.post("/companies/:companyId/products", async (req: Request, res: Response
 
 
 
-//PUT /products/:id - Actualizar producto
+
+// PUT /products/:id - Actualizar producto
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const { name, price, brand, status, description } = req.body;
+    let { name, price, brand, status } = req.body;
+
+    // Convertir status a booleano si viene definido
+    if (status !== undefined) {
+      if (status === "true" || status === true) status = true;
+      else if (status === "false" || status === false) status = false;
+      else status = undefined; // valor inválido se ignora
+    }
 
     //Validar formato de ID
     if (isNaN(id)) {
@@ -222,8 +251,7 @@ router.put("/:id", async (req: Request, res: Response) => {
       name,
       price: Number(price),
       brand,
-      status,
-      description,
+      ...(status !== undefined && { status }), // solo sobrescribe si viene status
     });
 
     if (!updated) {
@@ -242,19 +270,19 @@ router.put("/:id", async (req: Request, res: Response) => {
 });
 
 
+
+
 //DELETE /api/products/:id - Soft delete (cambia status a INACTIVE)
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
-    //Validar formato del ID
     if (isNaN(id)) {
       return res.status(400).json({
         error: { message: "Invalid product ID format" },
       });
     }
 
-    //Buscar producto existente
     const product = await productRepo.findOneBy({ id });
     if (!product) {
       return res.status(404).json({

@@ -1,5 +1,7 @@
 import { Request, Response, Router } from "express";
 import { StockService } from "../services/stock.service";
+import { AppDataSource } from "../config/datasource";
+import { Product } from "../entities/Product";
 
 const router = Router();
 const stockService = new StockService();
@@ -10,7 +12,6 @@ router.get("/warehouses/:warehouseId/stock", async (req: Request, res: Response)
     const warehouseId = Number(req.params.warehouseId);
     const productId = req.query.productId ? Number(req.query.productId) : undefined;
 
-    //Validar formato de IDs
     if (isNaN(warehouseId)) {
       return res.status(400).json({
         error: { message: "Invalid warehouse ID format" },
@@ -24,13 +25,20 @@ router.get("/warehouses/:warehouseId/stock", async (req: Request, res: Response)
     }
 
     //Obtener stock
-    const stock = await stockService.getStock(warehouseId, productId);
+    let stock = await stockService.getStock(warehouseId, productId);
 
-    // Si no hay stock registrado
+    //Si no hay stock registrado, devolver quantity 0 en lugar de error
     if (!stock || (Array.isArray(stock) && stock.length === 0)) {
-      return res.status(404).json({
-        error: { message: "No stock found for the given criteria" },
-      });
+      // Traer productos según productId o todos si no hay
+      const products = productId
+        ? await AppDataSource.getRepository(Product).find({ where: { id: productId } })
+        : await AppDataSource.getRepository(Product).find();
+
+      stock = products.map((p) => ({
+        productId: p.id,
+        productName: p.name,
+        quantity: 0,
+      }));
     }
 
     res.json(stock);
@@ -40,6 +48,7 @@ router.get("/warehouses/:warehouseId/stock", async (req: Request, res: Response)
     });
   }
 });
+
 
 
 //POST /warehouses/:warehouseId/stock/in
@@ -62,7 +71,7 @@ router.post("/warehouses/:warehouseId/stock/in", async (req: Request, res: Respo
       });
     }
 
-    // 💾 Ejecutar entrada de stock
+    //Ejecutar entrada de stock
     const result = await stockService.stockIn(warehouseId, Number(productId), Number(quantity), note);
 
     res.status(201).json({
@@ -112,7 +121,6 @@ router.post("/warehouses/:warehouseId/stock/out", async (req: Request, res: Resp
     });
 
   } catch (error: any) {
-    //Manejo de errores comunes
     if (error.message.includes("not found")) {
       return res.status(404).json({
         error: { message: error.message },
